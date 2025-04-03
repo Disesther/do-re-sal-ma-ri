@@ -26,6 +26,21 @@ document.addEventListener('DOMContentLoaded', () => {
         '#FF0000', // Rood
     ];
 
+    // Functie om het canvas te schalen op basis van het schermformaat
+    function resizeCanvas() {
+        const containerWidth = Math.min(window.innerWidth - 40, 600);
+        const containerHeight = Math.min(window.innerHeight - 200, 600);
+        const size = Math.min(containerWidth, containerHeight);
+        
+        canvas.width = size;
+        canvas.height = size;
+        
+        drawWheel();
+    }
+    
+    // Luister naar window resize events
+    window.addEventListener('resize', resizeCanvas);
+    
     // Draw the wheel
     function drawWheel() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -68,7 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.rotate(angle + arc / 2);
             ctx.textAlign = "right";
             ctx.fillStyle = "white";
-            ctx.font = "bold 20px Arial";
+            // Pas de tekstgrootte aan op basis van het aantal namen en de grootte van het canvas
+            const fontSize = Math.min(20, radius / (numNames / 2));
+            ctx.font = `bold ${fontSize}px Arial`;
             ctx.fillText(names[i], radius - 50, 5);
             ctx.restore();
         }
@@ -91,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawBottle(rotation) {
         if (!imageLoaded) return;
         
-        const bottleWidth = 80;
-        const bottleHeight = 240;
+        const bottleWidth = canvas.width * 0.13; // 80/600
+        const bottleHeight = canvas.height * 0.4; // 240/600
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         
@@ -145,9 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 startAngle = (startAngle + totalAngle) % (2 * Math.PI);
                 drawWheel();
                 
-                // De bovenkant van de fles bepaalt de winnaar
-                const normalizedAngle = (2 * Math.PI - startAngle) % (2 * Math.PI);
-                const winningIndex = Math.floor(normalizedAngle / arc);
+                // Nieuwe berekening voor de winnaar
+                // De fles wijst naar beneden (Math.PI), dus we moeten de hoek aanpassen
+                // zodat de winnaar overeenkomt met waar de hals van de fles naartoe wijst
+                const bottleAngle = (startAngle + Math.PI) % (2 * Math.PI);
+                const winningIndex = Math.floor(bottleAngle / arc);
                 resultP.textContent = "Gekozen: " + names[winningIndex];
                 
                 spinButton.disabled = false;
@@ -163,6 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     spinButton.addEventListener('click', spin);
     
-    // Teken het initiële wiel
-    drawWheel();
+    // Initialiseer het canvas op basis van het schermformaat
+    resizeCanvas();
 }); 
