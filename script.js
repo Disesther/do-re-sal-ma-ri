@@ -166,7 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // De fles wijst naar beneden (Math.PI), dus we moeten de hoek aanpassen
                 // zodat de winnaar overeenkomt met waar de hals van de fles naartoe wijst
                 const bottleAngle = (startAngle + Math.PI) % (2 * Math.PI);
-                const winningIndex = Math.floor(bottleAngle / arc);
+                // Bereken welk segment de fles aanwijst
+                // We draaien de hoek 90 graden (Math.PI/2) om te compenseren voor de oriëntatie van de fles
+                const adjustedAngle = (bottleAngle + Math.PI/2) % (2 * Math.PI);
+                const winningIndex = Math.floor(adjustedAngle / arc);
                 resultP.textContent = "Gekozen: " + names[winningIndex];
                 
                 spinButton.disabled = false;
