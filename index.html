@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Do-re-sal-ma-ri</h1>
-    <input type="text" id="namesInput" placeholder="Voer namen in, gescheiden door komma's">
-    <button id="spinButton">Spin the bottle</button>
-    <canvas id="wheel" width="600" height="600"></canvas>
-    <p id="result"></p>
+    <div class="container">
+        <h1>Do-re-sal-ma-ri</h1>
+        <div class="game-section">
+            <input type="text" id="namesInput" placeholder="Voer namen in, gescheiden door komma's">
+            <button id="spinButton">Spin the bottle</button>
+            <canvas id="wheel" width="600" height="600"></canvas>
+            <p id="result"></p>
+        </div>
+        <div class="scoreboard">
+            <h2>Scorebord</h2>
+            <div id="scores"></div>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html> 

@@ -1,0 +1,26 @@
+name: Update Scores
+
+on:
+  repository_dispatch:
+    types: [update_scores]
+
+jobs:
+  update-scores:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Update scores
+        run: |
+          # Haal de huidige scores op
+          curl -s https://raw.githubusercontent.com/Disesther/do-re-sal-ma-ri/main/scores.json > current_scores.json
+          
+          # Update de scores met de nieuwe data
+          jq --argjson new_scores "${{ github.event.client_payload.scores }}" '.scores = $new_scores' current_scores.json > updated_scores.json
+          
+          # Commit en push de wijzigingen
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add scores.json
+          git commit -m "Update scores"
+          git push 

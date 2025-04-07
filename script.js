@@ -4,11 +4,73 @@ document.addEventListener('DOMContentLoaded', () => {
     const spinButton = document.getElementById('spinButton');
     const namesInput = document.getElementById('namesInput');
     const resultP = document.getElementById('result');
+    const scoresDiv = document.getElementById('scores');
     
     let names = [];
     let startAngle = 0;
     let arc = 0;
     let isSpinning = false;
+    let scores = {};
+    
+    // Laad de scores van GitHub
+    async function loadScores() {
+        try {
+            const response = await fetch('scores.json');
+            const data = await response.json();
+            scores = data.scores || {};
+            updateScoreboard();
+        } catch (error) {
+            console.error('Error loading scores:', error);
+            scores = {};
+        }
+    }
+    
+    // Update het scorebord in de UI
+    function updateScoreboard() {
+        scoresDiv.innerHTML = '';
+        const sortedScores = Object.entries(scores)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 10); // Toon alleen top 10
+        
+        sortedScores.forEach(([name, score]) => {
+            const scoreItem = document.createElement('div');
+            scoreItem.className = 'score-item';
+            scoreItem.innerHTML = `
+                <span class="score-name">${name}</span>
+                <span class="score-value">${score}</span>
+            `;
+            scoresDiv.appendChild(scoreItem);
+        });
+    }
+    
+    // Update de score voor een winnaar
+    async function updateScore(winner) {
+        scores[winner] = (scores[winner] || 0) + 1;
+        updateScoreboard();
+        
+        // Stuur de nieuwe scores naar GitHub via repository dispatch
+        try {
+            const response = await fetch('https://api.github.com/repos/Disesther/do-re-sal-ma-ri/dispatches', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Authorization': 'Bearer YOUR_GITHUB_TOKEN',
+                },
+                body: JSON.stringify({
+                    event_type: 'update_scores',
+                    client_payload: {
+                        scores: scores
+                    }
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update scores');
+            }
+        } catch (error) {
+            console.error('Error updating scores:', error);
+        }
+    }
     
     // Laad de Salmari fles afbeelding
     const spinnerImage = new Image();
@@ -162,15 +224,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 startAngle = (startAngle + totalAngle) % (2 * Math.PI);
                 drawWheel();
                 
-                // Nieuwe berekening voor de winnaar
-                // De fles wijst naar beneden (Math.PI), dus we moeten de hoek aanpassen
-                // zodat de winnaar overeenkomt met waar de hals van de fles naartoe wijst
                 const bottleAngle = (startAngle + Math.PI) % (2 * Math.PI);
-                // Bereken welk segment de fles aanwijst
-                // We draaien de hoek 90 graden (Math.PI/2) om te compenseren voor de oriëntatie van de fles
                 const adjustedAngle = (bottleAngle + Math.PI/2) % (2 * Math.PI);
                 const winningIndex = Math.floor(adjustedAngle / arc);
-                resultP.textContent = "Gekozen: " + names[winningIndex];
+                const winner = names[winningIndex];
+                resultP.textContent = "Gekozen: " + winner;
+                
+                // Update de score voor de winnaar
+                updateScore(winner);
                 
                 spinButton.disabled = false;
             }
@@ -187,4 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialiseer het canvas op basis van het schermformaat
     resizeCanvas();
+    
+    // Laad de scores wanneer de pagina wordt geladen
+    loadScores();
 }); 
